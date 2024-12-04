@@ -9,11 +9,15 @@ import com.erjean.huierma.constant.CommonConstant;
 import com.erjean.huierma.exception.ThrowUtils;
 import com.erjean.huierma.mapper.QuestionBankQuestionMapper;
 import com.erjean.huierma.model.dto.questionbankquestion.QuestionBankQuestionQueryRequest;
+import com.erjean.huierma.model.entity.Question;
+import com.erjean.huierma.model.entity.QuestionBank;
 import com.erjean.huierma.model.entity.QuestionBankQuestion;
 import com.erjean.huierma.model.entity.User;
 import com.erjean.huierma.model.vo.QuestionBankQuestionVO;
 import com.erjean.huierma.model.vo.UserVO;
 import com.erjean.huierma.service.QuestionBankQuestionService;
+import com.erjean.huierma.service.QuestionBankService;
+import com.erjean.huierma.service.QuestionService;
 import com.erjean.huierma.service.UserService;
 import com.erjean.huierma.utils.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +41,12 @@ public class QuestionBankQuestionServiceImpl extends ServiceImpl<QuestionBankQue
     @Resource
     private UserService userService;
 
+    @Resource
+    private QuestionService questionService;
+
+    @Resource
+    private QuestionBankService questionBankService;
+
     /**
      * 校验数据
      * @param questionBankQuestion
@@ -45,6 +55,18 @@ public class QuestionBankQuestionServiceImpl extends ServiceImpl<QuestionBankQue
     @Override
     public void validQuestionBankQuestion(QuestionBankQuestion questionBankQuestion, boolean add) {
         ThrowUtils.throwIf(questionBankQuestion == null, ErrorCode.PARAMS_ERROR);
+
+        Long questionBankId = questionBankQuestion.getQuestionBankId();
+        if (questionBankId != null) {
+            QuestionBank questionBank = questionBankService.getById(questionBankId);
+            ThrowUtils.throwIf(questionBank == null, ErrorCode.NOT_FOUND_ERROR, "题库不存在");
+        }
+        Long questionId = questionBankQuestion.getQuestionId();
+        if (questionId != null) {
+            Question question = questionService.getById(questionId);
+            ThrowUtils.throwIf(question == null, ErrorCode.NOT_FOUND_ERROR, "题目不存在");
+        }
+
 
         // 不需要校验
 //        //  从对象中取值

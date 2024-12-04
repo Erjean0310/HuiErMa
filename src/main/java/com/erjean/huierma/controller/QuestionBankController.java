@@ -9,14 +9,17 @@ import com.erjean.huierma.common.ResultUtils;
 import com.erjean.huierma.constant.UserConstant;
 import com.erjean.huierma.exception.BusinessException;
 import com.erjean.huierma.exception.ThrowUtils;
+import com.erjean.huierma.model.dto.question.QuestionQueryRequest;
 import com.erjean.huierma.model.dto.questionbank.QuestionBankAddRequest;
 import com.erjean.huierma.model.dto.questionbank.QuestionBankEditRequest;
 import com.erjean.huierma.model.dto.questionbank.QuestionBankQueryRequest;
 import com.erjean.huierma.model.dto.questionbank.QuestionBankUpdateRequest;
+import com.erjean.huierma.model.entity.Question;
 import com.erjean.huierma.model.entity.QuestionBank;
 import com.erjean.huierma.model.entity.User;
 import com.erjean.huierma.model.vo.QuestionBankVO;
 import com.erjean.huierma.service.QuestionBankService;
+import com.erjean.huierma.service.QuestionService;
 import com.erjean.huierma.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -39,6 +42,9 @@ public class QuestionBankController {
     @Resource
     private UserService userService;
 
+    @Resource
+    private QuestionService questionService;
+
     // region 增删改查
 
     /**
@@ -48,6 +54,7 @@ public class QuestionBankController {
      * @return
      */
     @PostMapping("/add")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Long> addQuestionBank(@RequestBody QuestionBankAddRequest questionBankAddRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(questionBankAddRequest == null, ErrorCode.PARAMS_ERROR);
         // 在此处将实体类和 DTO 进行转换
@@ -73,6 +80,7 @@ public class QuestionBankController {
      * @return
      */
     @PostMapping("/delete")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> deleteQuestionBank(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -120,17 +128,33 @@ public class QuestionBankController {
 
     /**
      * 根据 id 获取题库（封装类）
-     * @param id
+     * @param questionBankQueryRequest
      * @return
      */
     @GetMapping("/get/vo")
-    public BaseResponse<QuestionBankVO> getQuestionBankVOById(long id, HttpServletRequest request) {
+    public BaseResponse<QuestionBankVO> getQuestionBankVOById(QuestionBankQueryRequest questionBankQueryRequest, HttpServletRequest request) {
+        ThrowUtils.throwIf(questionBankQueryRequest == null, ErrorCode.PARAMS_ERROR);
+
+        Long id = questionBankQueryRequest.getId();
         ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
+
         // 查询数据库
         QuestionBank questionBank = questionBankService.getById(id);
         ThrowUtils.throwIf(questionBank == null, ErrorCode.NOT_FOUND_ERROR);
+
         // 获取封装类
-        return ResultUtils.success(questionBankService.getQuestionBankVO(questionBank, request));
+        QuestionBankVO questionBankVO = questionBankService.getQuestionBankVO(questionBank, request);
+
+        // 是否要关联查询题库下的题目列表
+        boolean needQueryQuestionList = questionBankQueryRequest.isNeedQueryQuestionList();
+        if (needQueryQuestionList) {
+            QuestionQueryRequest questionQueryRequest = new QuestionQueryRequest();
+            questionQueryRequest.setQuestionBankId(id);
+            Page<Question> questionPage = questionService.listQuestionByPage(questionQueryRequest);
+            questionBankVO.setQuestionPage(questionPage);
+        }
+
+        return ResultUtils.success(questionBankVO);
     }
 
     /**
@@ -200,6 +224,7 @@ public class QuestionBankController {
      * @return
      */
     @PostMapping("/edit")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> editQuestionBank(@RequestBody QuestionBankEditRequest questionBankEditRequest, HttpServletRequest request) {
         if (questionBankEditRequest == null || questionBankEditRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);

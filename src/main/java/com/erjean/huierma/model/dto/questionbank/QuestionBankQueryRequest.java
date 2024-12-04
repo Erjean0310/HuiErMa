@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * 查询题库请求
@@ -43,6 +42,11 @@ public class QuestionBankQueryRequest extends PageRequest implements Serializabl
      * 图片
      */
     private String picture;
+
+    /**
+     * 是否要关联查询题目列表
+     */
+    private boolean needQueryQuestionList;
 
     /**
      * 创建用户 id
