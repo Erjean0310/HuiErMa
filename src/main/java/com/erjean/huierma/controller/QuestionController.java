@@ -15,6 +15,7 @@ import com.erjean.huierma.model.dto.question.QuestionEditRequest;
 import com.erjean.huierma.model.dto.question.QuestionQueryRequest;
 import com.erjean.huierma.model.dto.question.QuestionUpdateRequest;
 import com.erjean.huierma.model.entity.Question;
+import com.erjean.huierma.model.entity.QuestionBankQuestion;
 import com.erjean.huierma.model.entity.User;
 import com.erjean.huierma.model.vo.QuestionVO;
 import com.erjean.huierma.service.QuestionBankQuestionService;
@@ -243,4 +244,14 @@ public class QuestionController {
     }
 
     // endregion
+
+    @PostMapping("/search/page/vo")
+    public BaseResponse<Page<QuestionVO>> searchQuestionVOByPage(@RequestBody QuestionQueryRequest questionQueryRequest, HttpServletRequest request) {
+        long size = questionQueryRequest.getPageSize();
+        // 限制爬虫
+        ThrowUtils.throwIf(size > 200, ErrorCode.PARAMS_ERROR);
+        Page<Question> questionPage = questionService.searchFromEs(questionQueryRequest);
+        return ResultUtils.success(questionService.getQuestionVOPage(questionPage, request));
+    }
+
 }
