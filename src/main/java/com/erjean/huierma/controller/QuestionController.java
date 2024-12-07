@@ -10,10 +10,7 @@ import com.erjean.huierma.common.ResultUtils;
 import com.erjean.huierma.constant.UserConstant;
 import com.erjean.huierma.exception.BusinessException;
 import com.erjean.huierma.exception.ThrowUtils;
-import com.erjean.huierma.model.dto.question.QuestionAddRequest;
-import com.erjean.huierma.model.dto.question.QuestionEditRequest;
-import com.erjean.huierma.model.dto.question.QuestionQueryRequest;
-import com.erjean.huierma.model.dto.question.QuestionUpdateRequest;
+import com.erjean.huierma.model.dto.question.*;
 import com.erjean.huierma.model.entity.Question;
 import com.erjean.huierma.model.entity.QuestionBankQuestion;
 import com.erjean.huierma.model.entity.User;
@@ -254,4 +251,17 @@ public class QuestionController {
         return ResultUtils.success(questionService.getQuestionVOPage(questionPage, request));
     }
 
+    /**
+     * 批量删除题目
+     * @param questionBatchDeleteRequest
+     * @return
+     */
+    @PostMapping("/delete/batch")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Boolean> batchDeleteQuestion(@RequestBody QuestionBatchDeleteRequest questionBatchDeleteRequest) {
+        ThrowUtils.throwIf(questionBatchDeleteRequest == null, ErrorCode.PARAMS_ERROR);
+        List<Long> questionIdList = questionBatchDeleteRequest.getQuestionIdList();
+        questionService.batchDeleteQuestions(questionIdList);
+        return ResultUtils.success(true);
+    }
 }
