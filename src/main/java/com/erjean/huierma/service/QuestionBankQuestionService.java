@@ -7,6 +7,7 @@ import com.erjean.huierma.model.dto.questionbankquestion.QuestionBankQuestionQue
 import com.erjean.huierma.model.entity.QuestionBankQuestion;
 import com.erjean.huierma.model.entity.User;
 import com.erjean.huierma.model.vo.QuestionBankQuestionVO;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -62,4 +63,11 @@ public interface QuestionBankQuestionService extends IService<QuestionBankQuesti
      * @return
      */
     void batchRemoveQuestionFromBank(List<Long> questionIdList, long questionBankId);
+
+    /**
+     * 批量添加题目到数据库 (事务, 仅供内部调用)
+     * @param questionBankQuestions
+     */
+    @Transactional(rollbackFor = Exception.class)
+    void batchAddQuestionToBankInner(List<QuestionBankQuestion> questionBankQuestions);
 }

@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  * 全量同步题目到 es
  */
 // 取消注释开启任务(实现 CommandLineRunner 接口，只会执行一次)
-@Component
+//@Component
 @Slf4j
 public class FullSyncQuestionToEs implements CommandLineRunner {
 
